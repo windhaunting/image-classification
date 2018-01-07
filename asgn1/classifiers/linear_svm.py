@@ -34,8 +34,8 @@ def svm_loss_naive(W, X, y, reg):
       margin = scores[j] - correct_class_score + 1 # note delta = 1
       if margin > 0:
         loss += margin
- 	dW[:,y[i]] -= X[i,:]
-	dW[:,j] += X[i,:] 
+        dW[:,y[i]] -= X[i,:]
+        dW[:,j] += X[i,:] 
 
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
@@ -53,7 +53,7 @@ def svm_loss_naive(W, X, y, reg):
   # loss is being computed. As a result you may need to modify some of the    #
   # code above to compute the gradient.                                       #
   #############################################################################
-
+  dW += reg*W
 
   return loss, dW
 
@@ -72,7 +72,14 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+  num_train = X.shape[0]
+  scores = X.dot(W)
+  yi_scores = scores[np.arange(scores.shape[0]),y] 
+  margins = np.maximum(0, scores - np.matrix(yi_scores).T + 1)
+  margins[np.arange(num_train),y] = 0
+  loss = np.mean(np.sum(margins, axis=1))
+  loss += 0.5 * reg * np.sum(W * W)	  
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -87,7 +94,18 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  binary = margins
+  binary[margins > 0] = 1
+  row_sum = np.sum(binary, axis=1)
+  binary[np.arange(num_train), y] = -row_sum.T
+  dW = np.dot(X.T, binary)
+
+  # Average
+  dW /= num_train
+
+  # Regularize
+  dW += reg*W
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
