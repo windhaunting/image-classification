@@ -60,9 +60,9 @@ class KNearestNeighbor(object):
       is the Euclidean distance between the ith test point and the jth training
       point.
     """
-    num_test = X.shape[0]
-    num_train = self.X_train.shape[0]
-    dists = np.zeros((num_test, num_train))
+    num_test = X.shape[0]       #test data number
+    num_train = self.X_train.shape[0]   #train data number
+    dists = np.zeros((num_test, num_train))         #i,j
     for i in xrange(num_test):
       for j in xrange(num_train):
         #####################################################################
@@ -71,7 +71,7 @@ class KNearestNeighbor(object):
         # training point, and store the result in dists[i, j]. You should   #
         # not use a loop over dimension.                                    #
         #####################################################################
-        pass
+        dists[i][j] = np.sqrt(np.sum(np.square(X[i, :] - self.X_train[j, :])))         #Euclidean distance, X is test data
         #####################################################################
         #                       END OF YOUR CODE                            #
         #####################################################################
@@ -93,7 +93,7 @@ class KNearestNeighbor(object):
       # Compute the l2 distance between the ith test point and all training #
       # points, and store the result in dists[i, :].                        #
       #######################################################################
-      pass
+      dists[i, :] = np.sqrt(np.sum(np.square((X[i, :]-self.X_train)), axis=1))      #broadcast X[i, ;],  axis = 1 for sum
       #######################################################################
       #                         END OF YOUR CODE                            #
       #######################################################################
@@ -121,7 +121,14 @@ class KNearestNeighbor(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    pass
+    #dists = np.linalg.norm(X-self.X_train[:,np.newaxis], axis=2)    #can we use linalg.norm Memory error
+    # # use matrix multiplication adn two broadcast sums (x-y)^2 = x^2 + y^2 - 2*x*y
+    testInnerProductSum = np.sum(X**2, axis=1, keepdims = True)                   #dim (500,1)
+    trainInnerProductSum = np.sum(self.X_train**2, axis=1)      #dim (5000, 
+    crossProduct = np.dot(X, self.X_train.T)                    #dim 500*5000
+    dists = np.sqrt(testInnerProductSum -2 * crossProduct + trainInnerProductSum)    #       
+    #print (" testInnerProductSum : " ,testInnerProductSum.shape, trainInnerProductSum.shape, crossProduct.shape, dists.shape)
+    
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -153,7 +160,11 @@ class KNearestNeighbor(object):
       # neighbors. Store these labels in closest_y.                           #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      pass
+      minDistIndicesK = np.argsort(dists[i])[:k]        #axis = 1
+      closet_y = [self.y_train[j] for j in minDistIndicesK]
+      
+      #print (" y_pred: ", self.y_train.shape, minDistIndicesK)
+
       #########################################################################
       # TODO:                                                                 #
       # Now that you have found the labels of the k nearest neighbors, you    #
@@ -161,7 +172,10 @@ class KNearestNeighbor(object):
       # Store this label in y_pred[i]. Break ties by choosing the smaller     #
       # label.                                                                #
       #########################################################################
-      pass
+      cntsArr = np.bincount(closet_y)            #most common label counts
+      
+      y_pred[i] = np.argmax(cntsArr)        #cntsArr.argmax()   # axis = 1
+      #print (" y_pred: ", y_pred[i])
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################
