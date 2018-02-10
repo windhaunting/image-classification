@@ -29,7 +29,33 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+   # compute the loss and the gradient
+  num_classes = W.shape[1]          #D
+  num_train = X.shape[0]            # N
+  loss = 0.0
+  for i in xrange(num_train):
+      scores = X[i].dot(W)                    # C
+      #if j == y[i]:
+      #  continue
+      
+      # get softmax denominator
+      scores -= np.max(scores)     #shift to make numeric stablity
+      normSoftMaxDenominator = np.exp(scores)/np.sum(np.exp(scores))         #normalized denominator
+      lognormSoftMax = np.log(np.sum(normSoftMaxDenominator))-np.log(normSoftMaxDenominator[y[i]])    # -loga/b = logb -log a
+      loss += lognormSoftMax
+      
+      dW[:, y[i]] -= X[i]                 #j = y[i]
+      for j in xrange(num_classes): 
+          dW[:, j] += np.exp(scores[j]) / np.sum(np.exp(scores)) * X[i]          # derivative dl/dw
+          
+  #average the loss and dW
+  loss /= num_train
+  dW /= num_train           # average dW
+  
+  # Add regularization to the loss.
+  loss += 0.5 * reg * np.sum(W * W)
+  dW += reg * W   # regularization  
+  
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -53,7 +79,58 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_train = X.shape[0]            # N
+
+  scores = X.dot(W)         #  dimension N X C 
+
+  scores -= np.max(scores, axis = 1)[:, np.newaxis]     # along the C 
+  softDenominator = np.exp(scores)
+  sumSoftDenominator = np.sum(softDenominator, axis = 1)          # (N, )
+  
+  correct_class_score = scores[range(num_train), y]
+
+  loss = np.sum(np.log(sumSoftDenominator)) - np.sum(correct_class_score)
+
+  normSoftDenominator = softDenominator / sumSoftDenominator[:,np.newaxis]        # normalization
+
+  '''
+  scores -= np.max(scores, axis = 1)[:, np.newaxis]    # along the C 
+  normaSoftMaxDenominator = np.exp(scores)/np.sum(np.exp(scores), axis=1)
+   
+  correct_class_score = scores[range(num_train), y]
+
+  loss = np.sum(np.log(np.sum(normaSoftMaxDenominator)))-np.sum(np.log(normaSoftMaxDenominator[range(num_train), y]))    # -loga/b = logb -log a
+  '''
+  
+  '''
+  margins = scores - scores[range(num_train), y].reshape(-1, 1) + 1#  N X C;  the margins for all classes in one vector operation delat = 1
+  #print ("margin : ", margins.shape)
+  margins[range(num_train), y] = 0            # ignore y true label class
+  
+  margins = np.maximum(0, margins)          # get non-zero margins
+  loss += np.sum(margins)  # /  
+  
+  loss /= num_train
+  loss += 0.5 * reg * np.sum(W * W)
+  '''
+  
+  loss /= num_train
+  loss += 0.5 * reg * np.sum(W * W)
+  
+  
+  softMax = np.exp(scores) / sumSoftDenominator.reshape(num_train, 1)      # no -log
+  softMax[range(num_train), y] -= 1
+  dW = np.dot(X.T, softMax)
+
+  dW = dW / num_train + reg * W
+  
+  '''
+  nonZero = (margins > 0).astype(int)       #nonzero number
+  nonZero[range(num_train), y] = - np.sum(nonZero, axis = 1)      #
+  dW += np.dot(X.T, nonZero) / num_train + reg * W
+  
+  
+  '''
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
