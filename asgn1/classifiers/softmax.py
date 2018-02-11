@@ -97,19 +97,13 @@ def softmax_loss_vectorized(W, X, y, reg):
   loss += 0.5 * reg * np.sum(W * W)
   
   
-  softMax = np.exp(scores) / sumSoftDenominator.reshape(num_train, 1)      # no -log
-  softMax[range(num_train), y] -= 1
-  dW = np.dot(X.T, softMax)
+  dsoftMax = np.exp(scores) / sumSoftDenominator.reshape(num_train, 1)      # no -log
+  dsoftMax[range(num_train), y] -= 1
+  dW = np.dot(X.T, dsoftMax)
 
   dW = dW / num_train + reg * W
   
-  '''
-  nonZero = (margins > 0).astype(int)       #nonzero number
-  nonZero[range(num_train), y] = - np.sum(nonZero, axis = 1)      #
-  dW += np.dot(X.T, nonZero) / num_train + reg * W
   
-  
-  '''
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
