@@ -74,7 +74,11 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    #1st layer linear
+    f1 = np.dot(X, W1) + b1          # N X H
+    hid1 = np.maximum(0, f1)      # RELU hidden layer
+    # 2nd layer, RELU
+    scores =  np.dot(hid1, W2)+ b2  #output layer   N X C
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -92,7 +96,20 @@ class TwoLayerNet(object):
     # classifier loss. So that your results match ours, multiply the            #
     # regularization loss by 0.5                                                #
     #############################################################################
-    pass
+
+    scores = scores - np.max(scores, axis = 1)         #prevent numeric instability
+    softDenominator = np.exp(scores)       # N X C
+    print (" softDenominator dimension: ", softDenominator.shape)
+    sumSoftDenominator = np.sum(softDenominator, axis = 1)          # (N, )
+  
+    correct_class_score = scores[range(num_train), y]
+
+    loss = np.sum(np.log(sumSoftDenominator)) - np.sum(correct_class_score)
+
+
+    loss /= N
+    loss += 0.5 * reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
+    
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################

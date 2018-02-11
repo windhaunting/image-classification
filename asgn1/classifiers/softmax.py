@@ -91,28 +91,7 @@ def softmax_loss_vectorized(W, X, y, reg):
 
   loss = np.sum(np.log(sumSoftDenominator)) - np.sum(correct_class_score)
 
-  normSoftDenominator = softDenominator / sumSoftDenominator[:,np.newaxis]        # normalization
 
-  '''
-  scores -= np.max(scores, axis = 1)[:, np.newaxis]    # along the C 
-  normaSoftMaxDenominator = np.exp(scores)/np.sum(np.exp(scores), axis=1)
-   
-  correct_class_score = scores[range(num_train), y]
-
-  loss = np.sum(np.log(np.sum(normaSoftMaxDenominator)))-np.sum(np.log(normaSoftMaxDenominator[range(num_train), y]))    # -loga/b = logb -log a
-  '''
-  
-  '''
-  margins = scores - scores[range(num_train), y].reshape(-1, 1) + 1#  N X C;  the margins for all classes in one vector operation delat = 1
-  #print ("margin : ", margins.shape)
-  margins[range(num_train), y] = 0            # ignore y true label class
-  
-  margins = np.maximum(0, margins)          # get non-zero margins
-  loss += np.sum(margins)  # /  
-  
-  loss /= num_train
-  loss += 0.5 * reg * np.sum(W * W)
-  '''
   
   loss /= num_train
   loss += 0.5 * reg * np.sum(W * W)
